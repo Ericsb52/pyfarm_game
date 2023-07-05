@@ -2,7 +2,8 @@ import sys
 from settings import *
 from level import *
 
-# lest off at https://www.youtube.com/watch?v=R9apl6B_ZgI 1:21:45 creating the overlay section
+# lest off at https://www.youtube.com/watch?v=R9apl6B_ZgI 2:42 working on trees
+# i need to look at the colision box of the player it seems a bit big and is causing issues on the side of the house
 
 def main():
     game = Game()
@@ -17,8 +18,9 @@ class Game:
         # window setup
         self.screen = pg.display.set_mode((SCREEN_W,SCREEN_H))
         pg.display.set_caption(TITLE)
-        self.icon = pg.Surface((10,10))
-        self.icon.fill("red")
+        self.icon = pg.image.load(icon_path).convert_alpha()
+        self.icon = pg.transform.scale(self.icon,(20,20))
+
         pg.display.set_icon(self.icon)
 
         # set up clock

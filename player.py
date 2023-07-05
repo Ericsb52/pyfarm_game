@@ -2,7 +2,7 @@ from settings import *
 from timer import *
 
 class Player(pg.sprite.Sprite):
-    def __init__(self,pos,group):
+    def __init__(self,pos,group,collision_group):
         super().__init__(group)
 
         self.import_assets()
@@ -15,6 +15,9 @@ class Player(pg.sprite.Sprite):
         self.image = self.animations[self.status][self.frame_index]
 
         self.rect = self.image.get_rect(center = pos)
+        self.hit_box = self.rect.copy().inflate((-126,-70))
+        self.collision_group = collision_group
+        self.z = layers["main"]
 
         # movment
         self.dir = pg.math.Vector2()
@@ -95,16 +98,37 @@ class Player(pg.sprite.Sprite):
                 print(self.selected_seed)
 
 
-
+    def collision(self,dir):
+        for sprite in self.collision_group.sprites():
+            if hasattr(sprite,"hit_box"):
+                if sprite.hit_box.colliderect(self.hit_box):
+                    if dir == "horizontal":
+                        if self.dir.x > 0:
+                            self.hit_box.right = sprite.hit_box.left
+                        if self.dir.x < 0:
+                            self.hit_box.left = sprite.hit_box.right
+                        self.rect.centerx = self.hit_box.centerx
+                        self.pos.x = self.hit_box.centerx
+                    if dir == "vertical":
+                        if self.dir.y > 0:
+                            self.hit_box.bottom = sprite.hit_box.top
+                        if self.dir.y < 0:
+                            self.hit_box.top = sprite.hit_box.bottom
+                        self.rect.centery = self.hit_box.centery
+                        self.pos.y = self.hit_box.centery
     def move(self,dt):
         if (self.dir.magnitude() > 0):
             self.dir = self.dir.normalize()
 
         self.pos.x += self.dir.x * self.speed * dt
-        self.rect.centerx = self.pos.x
+        self.hit_box.centerx = round(self.pos.x)
+        self.rect.centerx = self.hit_box.centerx
+        self.collision("horizontal")
 
         self.pos.y += self.dir.y * self.speed * dt
-        self.rect.centery = self.pos.y
+        self.hit_box.centery = round(self.pos.y)
+        self.rect.centery = self.hit_box.centery
+        self.collision("vertical")
 
     def update(self,dt):
         self.input()
@@ -114,14 +138,14 @@ class Player(pg.sprite.Sprite):
         self.update_timers()
 
     def import_assets(self):
-        print("testing")
+
         self.animations = {"up":[],"down":[],"left":[],"right":[],
                            "up_idle":[],"down_idle":[],"right_idle":[],"left_idle":[],
                            "up_hoe":[],"down_hoe":[],"right_hoe":[],"left_hoe":[],
                            "up_axe":[],"down_axe":[],"right_axe":[],"left_axe":[],
                            "up_water":[],"down_water":[],"right_water":[],"left_water":[]}
         for anim in self.animations.keys():
-            path = "assets/graphics/character/"+anim
+            path = anim_path+anim
             self.animations[anim] = import_folder(path)
         print(self.animations)
 
